@@ -1,0 +1,15 @@
+useDotenv: true
+
+org: ${env:SLS_ORG}
+service: ${env:SLS_SERVICE}
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: eu-north-1
+  iam:
+    role: ${env:AWS_IAM_ROLE}
+  environment:
+    TABLE_NAME: ${env:DYNAMODB_TABLE}
+
+iamRoleStatements:
