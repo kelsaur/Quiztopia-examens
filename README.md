@@ -1,69 +1,57 @@
-<!--
-title: 'AWS Simple HTTP Endpoint example in NodeJS'
-description: 'This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.'
-layout: Doc
-framework: v4
-platform: AWS
-language: nodeJS
-authorLink: 'https://github.com/serverless'
-authorName: 'Serverless, Inc.'
-authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
--->
+# Quiztopia Backend
 
-# Serverless Framework Node HTTP API on AWS
+Quiztopia - a serverless backend for an interactive quiz app. <br>
+Built with **AWS Lambda, DynamoDB, and API Gateway**, deployed using **Serverless Framework**. **Middy** middleware is used for validation, JSON parsing, and error handling, **bcrypt** for password hashing and **JWT** for authentication.
 
-This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.
+## DynamoDB Table Design
 
-This template does not include any kind of persistence (database). For more advanced examples, check out the [serverless/examples repository](https://github.com/serverless/examples/) which includes Typescript, Mongo, DynamoDB and other examples.
+Single-table design using `pk` (partition key) and `sk` (sort key).
 
-## Usage
+- **User**
+  - `pk = USER#username`, `sk = PROFILE`
+- **Quiz**
+  - `pk = QUIZ#quizId`, `sk = PROFILE`
+  - `GSI1pk = QUIZZES` (used to list all quizzes)
+- **Question**
+  - `pk = QUIZ#quizId`, `sk = QUESTION#questionId`
 
-### Deployment
+## Endpoints
 
-In order to deploy the example, you need to run the following command:
+| Method | Path                          | Description                    |
+| ------ | ----------------------------- | ------------------------------ |
+| POST   | `/auth/register`              | Register new user              |
+| POST   | `/auth/login`                 | Log in, return JWT             |
+| POST   | `/quizzes`                    | Create quiz `*`                |
+| POST   | `/quizzes/{quizId}/questions` | Add question `*`               |
+| DELETE | `/quizzes/{quizId}`           | Delete quiz + all questions`*` |
+| GET    | `/quizzes/{quizId}`           | Get quiz + all questions       |
+| GET    | `/quizzes`                    | List all quizzes               |
 
-```
-serverless deploy
-```
+`*` only for logged in and authenticated users <br>
+Protected routes require `Authorization: Bearer <token>` header.
 
-After running deploy, you should see output similar to:
+## Set up
 
-```
-Deploying "serverless-http-api" to stage "dev" (us-east-1)
-
-✔ Service deployed to stack serverless-http-api-dev (91s)
-
-endpoint: GET - https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/
-functions:
-  hello: serverless-http-api-dev-hello (1.6 kB)
-```
-
-_Note_: In current form, after deployment, your API is public and can be invoked by anyone. For production deployments, you might want to configure an authorizer. For details on how to do that, refer to [HTTP API (API Gateway V2) event docs](https://www.serverless.com/framework/docs/providers/aws/events/http-api).
-
-### Invocation
-
-After successful deployment, you can call the created application via HTTP:
-
-```
-curl https://xxxxxxx.execute-api.us-east-1.amazonaws.com/
-```
-
-Which should result in response similar to:
-
-```json
-{ "message": "Go Serverless v4! Your function executed successfully!" }
-```
-
-### Local development
-
-The easiest way to develop and test your function is to use the `dev` command:
-
-```
-serverless dev
-```
-
-This will start a local emulator of AWS Lambda and tunnel your requests to and from AWS Lambda, allowing you to interact with your function as if it were running in the cloud.
-
-Now you can invoke the function as before, but this time the function will be executed locally. Now you can develop your function locally, invoke it, and see the results immediately without having to re-deploy.
-
-When you are done developing, don't forget to run `serverless deploy` to deploy the function to the cloud.
+1. Clone the repo
+   ```bash
+   git clone https://github.com/kelsaur/Quiztopia-examens
+   cd Quiztopia
+   ```
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file with:
+   ```
+   DYNAMODB_TABLE=Quiztopia-table
+   SLS_ORG=orgName
+   SLS_SERVICE=serviceName
+   AWS_IAM_ROLE=yourIAMRole
+   DYNAMODB_TABLE=yourTableName
+   JWT_SECRET=yourSecretKey
+   AWS_REGION=yourRegion
+   ```
+4. Deploy with Serverless
+   ```bash
+   npx serverless deploy
+   ```
