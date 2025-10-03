@@ -37,17 +37,17 @@ functions:
           method: post
 
   createQuestions:
-    handler: functions/createQuestions/index.handler
+    handler: functions/createQuestion/index.handler
     events:
       - http:
-          path: /quizzes/{id}/questions
+          path: /quizzes/{quizId}/questions
           method: post
       
   deleteQuiz:
     handler: functions/deleteQuiz/index.handler
     events:
       - http:
-          path: /quizzes/{id}
+          path: /quizzes/{quizId}
           method: delete
 
   getAllQuizzes:
@@ -57,11 +57,11 @@ functions:
           path: /quizzes/
           method: get
 
-  getQuestionsByQuizId:
-    handler: functions/getQuestionsByQuizId/index.handler
+  getQuizById:
+    handler: functions/getQuizById/index.handler
     events:
       - http:
-          path: /quizzes/{id}/questions
+          path: /quizzes/{quizId}
           method: get
 
 resources:
