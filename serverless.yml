@@ -5,11 +5,88 @@ service: ${env:SLS_SERVICE}
 
 provider:
   name: aws
-  runtime: nodejs22.x
+  runtime: nodejs20.x
   region: eu-north-1
-  iam:
-    role: ${env:AWS_IAM_ROLE}
   environment:
     TABLE_NAME: ${env:DYNAMODB_TABLE}
+    JWT_SECRET: ${env:JWT_SECRET}
+  iam:
+    role: ${env:AWS_IAM_ROLE}
 
-iamRoleStatements:
+
+functions:
+  createAccount:
+    handler: functions/createAccount/index.handler
+    events:
+      - http:
+          path: /auth/register
+          method: post
+
+  logIn:
+    handler: functions/logIn/index.handler
+    events:
+      - http:
+          path: /auth/login
+          method: post
+
+  createQuiz:
+    handler: functions/createQuiz/index.handler
+    events:
+      - http:
+          path: /quizzes
+          method: post
+
+  createQuestions:
+    handler: functions/createQuestions/index.handler
+    events:
+      - http:
+          path: /quizzes/{id}/questions
+          method: post
+      
+  deleteQuiz:
+    handler: functions/deleteQuiz/index.handler
+    events:
+      - http:
+          path: /quizzes/{id}
+          method: delete
+
+  getAllQuizzes:
+    handler: functions/getAllQuizzes/index.handler
+    events:
+      - http:
+          path: /quizzes/
+          method: get
+
+  getQuestionsByQuizId:
+    handler: functions/getQuestionsByQuizId/index.handler
+    events:
+      - http:
+          path: /quizzes/{id}/questions
+          method: get
+
+resources:
+  Resources:
+    QuiztopiaTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TABLE_NAME}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+          - AttributeName: GSI1pk
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1 #all quizzes
+            KeySchema:
+              - AttributeName: GSI1pk
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
